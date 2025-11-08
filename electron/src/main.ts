@@ -10,7 +10,7 @@ log.transports.file.level = 'info';
 autoUpdater.logger = log;
 
 // Initialize secure store for settings
-const store = new Store({
+const store = new Store<Record<string, any>>({
   name: 'suna-config',
   encryptionKey: 'suna-desktop-encryption-key-v1'
 });
@@ -50,7 +50,6 @@ function createWindow(): void {
       nodeIntegration: false,
       webSecurity: true,
       sandbox: true,
-      enableRemoteModule: false,
       // Allow OAuth flows to work
       allowRunningInsecureContent: false,
       webviewTag: false,
@@ -223,16 +222,16 @@ function setupIpcHandlers(): void {
 
   // Store operations (for settings)
   ipcMain.handle('store:get', (_event, key: string) => {
-    return store.get(key);
+    return (store as any).get(key);
   });
 
   ipcMain.handle('store:set', (_event, key: string, value: any) => {
-    store.set(key, value);
+    (store as any).set(key, value);
     return true;
   });
 
   ipcMain.handle('store:delete', (_event, key: string) => {
-    store.delete(key);
+    (store as any).delete(key);
     return true;
   });
 
