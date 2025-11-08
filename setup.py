@@ -516,23 +516,78 @@ class SetupWizard:
             else:
                 print_error("Invalid choice. Exiting...")
                 return
+        
+        # Ask user to choose setup mode
+        print_info("Choose your setup mode:")
+        print()
+        print(f"{Colors.GREEN}[1] Quick Start{Colors.ENDC} - Minimal setup (Supabase + LLM only)")
+        print("    ✓ Fastest way to get started")
+        print("    ✓ Core agent functionality")
+        print("    ✓ Optional features can be added later")
+        print()
+        print(f"{Colors.GREEN}[2] Full Setup{Colors.ENDC} - Configure all available services")
+        print("    ✓ Web search, scraping, sandboxes")
+        print("    ✓ All integrations and tools")
+        print("    ✓ Recommended for production use")
+        print()
+        
+        while True:
+            setup_mode = input("Enter your choice (1 or 2) [1]: ").strip() or "1"
+            if setup_mode in ["1", "2"]:
+                break
+            print_error("Please enter 1 for Quick Start or 2 for Full Setup.")
+        
+        self.env_vars["quick_start"] = (setup_mode == "1")
+        if self.env_vars["quick_start"]:
+            print_success("Quick Start mode selected - we'll configure only the essentials!")
+            print_info("You can always add optional services later by editing .env files.")
+        else:
+            print_success("Full Setup mode selected - we'll configure all available services.")
 
         try:
             self.run_step(1, self.choose_setup_method)
             self.run_step(2, self.check_requirements)
             self.run_step(3, self.collect_supabase_info)
-            self.run_step(4, self.collect_daytona_info)
+            
+            # In Quick Start mode, skip optional services
+            is_quick_start = self.env_vars.get("quick_start", False)
+            
+            if not is_quick_start:
+                self.run_step(4, self.collect_daytona_info)
+            else:
+                # Skip Daytona in quick start
+                print_info("Skipping Daytona configuration (Quick Start mode)")
+                self.current_step = 4
+                save_progress(self.current_step, self.env_vars)
+                
             self.run_step(5, self.collect_llm_api_keys)
-            # Optional tools - users can skip these
-            self.run_step_optional(6, self.collect_morph_api_key, "Morph API Key (Optional)")
-            self.run_step_optional(7, self.collect_search_api_keys, "Search API Keys (Optional)")
-            self.run_step_optional(8, self.collect_rapidapi_keys, "RapidAPI Keys (Optional)")
+            
+            if not is_quick_start:
+                # Optional tools - users can skip these in full mode
+                self.run_step_optional(6, self.collect_morph_api_key, "Morph API Key (Optional)")
+                self.run_step_optional(7, self.collect_search_api_keys, "Search API Keys (Optional)")
+                self.run_step_optional(8, self.collect_rapidapi_keys, "RapidAPI Keys (Optional)")
+            else:
+                # Auto-skip optional services in quick start mode
+                print_info("Skipping optional service configurations (Quick Start mode)")
+                print_info("You can add Tavily, Firecrawl, RapidAPI, and other services later by editing backend/.env")
+                self.current_step = 8
+                save_progress(self.current_step, self.env_vars)
+                
             self.run_step(9, self.collect_kortix_keys)
-            # Supabase Cron does not require keys; ensure DB migrations enable cron functions
-            self.run_step_optional(10, self.collect_webhook_keys, "Webhook Configuration (Optional)")
-            self.run_step_optional(11, self.collect_mcp_keys, "MCP Configuration (Optional)")
-            self.run_step_optional(12, self.collect_composio_keys, "Composio Integration (Optional)")
-            # Removed duplicate webhook collection step
+            
+            if not is_quick_start:
+                # Supabase Cron does not require keys; ensure DB migrations enable cron functions
+                self.run_step_optional(10, self.collect_webhook_keys, "Webhook Configuration (Optional)")
+                self.run_step_optional(11, self.collect_mcp_keys, "MCP Configuration (Optional)")
+                self.run_step_optional(12, self.collect_composio_keys, "Composio Integration (Optional)")
+            else:
+                # Skip in quick start mode
+                print_info("Skipping webhook, MCP, and Composio configurations (Quick Start mode)")
+                self.current_step = 12
+                save_progress(self.current_step, self.env_vars)
+                
+            # These steps run for both modes
             self.run_step(13, self.configure_env_files)
             self.run_step(14, self.setup_supabase_database)
             self.run_step(15, self.install_dependencies)
@@ -1002,26 +1057,38 @@ class SetupWizard:
             )
         else:
             print_info(
-                "Suna REQUIRES Daytona for sandboxing functionality. Without this key, sandbox features will fail.")
+                "Daytona provides sandboxed code execution for agents (OPTIONAL).")
             print_info(
-                "Visit https://app.daytona.io/ to create an account.")
-            print_info("Then, generate an API key from the 'Keys' menu.")
-            input("Press Enter to continue once you have your API key...")
+                "Without Daytona, agents can still function but won't have isolated sandbox environments.")
+            print_info(
+                "Visit https://app.daytona.io/ to create an account and generate an API key.")
+            
+            skip = input("Skip Daytona setup? (y/N): ").strip().lower()
+            if skip == 'y':
+                print_info("Skipping Daytona configuration. You can add it later by editing backend/.env")
+                return
 
         self.env_vars["daytona"]["DAYTONA_API_KEY"] = self._get_input(
-            "Enter your Daytona API key: ",
-            validate_api_key,
+            "Enter your Daytona API key (or press Enter to skip): ",
+            lambda x, allow_empty=True: True if not x else validate_api_key(x, allow_empty=False),
             "Invalid API key format. It should be at least 10 characters long.",
             default_value=self.env_vars["daytona"]["DAYTONA_API_KEY"],
+            allow_empty=True,
         )
+        
+        # Only set defaults if a key was provided
+        if self.env_vars["daytona"]["DAYTONA_API_KEY"]:
+            # Set defaults if not already configured
+            if not self.env_vars["daytona"]["DAYTONA_SERVER_URL"]:
+                self.env_vars["daytona"][
+                    "DAYTONA_SERVER_URL"
+                ] = "https://app.daytona.io/api"
+            if not self.env_vars["daytona"]["DAYTONA_TARGET"]:
+                self.env_vars["daytona"]["DAYTONA_TARGET"] = "us"
+            print_success("Daytona configuration saved.")
+        else:
+            print_info("Daytona not configured. Sandbox features will be disabled.")
 
-        # Set defaults if not already configured
-        if not self.env_vars["daytona"]["DAYTONA_SERVER_URL"]:
-            self.env_vars["daytona"][
-                "DAYTONA_SERVER_URL"
-            ] = "https://app.daytona.io/api"
-        if not self.env_vars["daytona"]["DAYTONA_TARGET"]:
-            self.env_vars["daytona"]["DAYTONA_TARGET"] = "us"
 
         # Daytona is optional - sandbox features will be disabled if not configured
         configured_daytona = []

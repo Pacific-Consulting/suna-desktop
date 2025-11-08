@@ -144,30 +144,41 @@ Supabase-powered data layer handling authentication, user management, agent conf
 
 ## 🚀 Quick Start
 
-Get your Kortix platform running in minutes with our automated setup wizard:
+Get Suna running in **under 5 minutes**!
 
-### 1️⃣ Clone the Repository
+### Option 1: Quick Start (Minimal Setup - Recommended)
+
+For fastest setup with just the essentials:
+
 ```bash
 git clone https://github.com/kortix-ai/suna.git
 cd suna
 ```
 
-### 2️⃣ Run the Setup Wizard
-```bash
-python setup.py
-```
-The wizard will guide you through 14 steps with progress saving, so you can resume if interrupted.
+**You only need:**
+- Supabase (free local or cloud)
+- One LLM API key (Anthropic, OpenAI, Groq, etc.)
 
-### 3️⃣ Start the Platform
+📖 **[Follow the Quick Start Guide →](./QUICKSTART.md)**
+
+This gets you up and running with core agent functionality. Optional features (web search, sandboxes, etc.) can be added later.
+
+### Option 2: Full Setup Wizard
+
+For a complete setup with all features:
+
 ```bash
-python start.py
+python setup.py  # Interactive wizard with 17 steps
+python start.py  # Start all services
 ```
 
-That's it! Your Kortix platform will be running with Suna ready to assist you.
+The wizard guides you through configuring all available integrations with progress saving.
 
 ## 🏠 Self-Hosting
 
-Just use "setup.py". Ty mate.
+- **Quick & Easy:** [Quick Start Guide](./QUICKSTART.md) - 5 minutes to get running
+- **Full Featured:** Run `python setup.py` for interactive setup with all services
+- **Manual Setup:** See [detailed documentation](./docs/SELF-HOSTING.md) if it exists
 
 ---
 
