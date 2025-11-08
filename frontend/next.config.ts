@@ -1,10 +1,17 @@
 import type { NextConfig } from 'next';
 
-const nextConfig = (): NextConfig => ({
-  output: (process.env.NEXT_OUTPUT as 'standalone') || undefined,
+const nextConfig = (): NextConfig => {
+  // Support static export for Electron build
+  const isElectronBuild = process.env.ELECTRON_BUILD === 'true';
   
-  async rewrites() {
-    return [
+  const config: NextConfig = {
+    output: isElectronBuild ? 'export' : (process.env.NEXT_OUTPUT as 'standalone') || undefined,
+    skipTrailingSlashRedirect: true,
+  };
+
+  // Rewrites don't work with static export, only for web deployment
+  if (!isElectronBuild) {
+    config.rewrites = async () => [
       {
         source: '/ingest/static/:path*',
         destination: 'https://eu-assets.i.posthog.com/static/:path*',
@@ -18,8 +25,9 @@ const nextConfig = (): NextConfig => ({
         destination: 'https://eu.i.posthog.com/flags',
       },
     ];
-  },
-  skipTrailingSlashRedirect: true,
-});
+  }
+
+  return config;
+};
 
 export default nextConfig;

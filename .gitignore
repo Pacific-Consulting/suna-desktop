@@ -27,6 +27,18 @@ share/python-wheels/
 *.egg
 MANIFEST
 
+# Electron build outputs
+electron/dist/
+electron/dist-electron/
+electron/out/
+electron/node_modules/
+electron/.env
+
+# Frontend Next.js build outputs
+frontend/out/
+frontend/.next/
+frontend/node_modules/
+
 # PyInstaller
 #  Usually these files are written by a python script from a template
 #  before PyInstaller builds the exe, so as to inject date/other infos into it.

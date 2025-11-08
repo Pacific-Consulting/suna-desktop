@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Build outputs
+dist/
+dist-electron/
+out/
+
+# Logs
+*.log
+npm-debug.log*
+logs/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Certificates and keys (NEVER commit these!)
+*.pfx
+*.p12
+*.pem
+*.key
+*.cer
+
+# Environment
+.env
+.env.local
+.env.production
+
+# Build artifacts
+*.exe
+*.dmg
+*.AppImage
+*.deb
+*.snap
+
+# Temporary files
+*.tmp
+.cache/
