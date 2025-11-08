@@ -4,6 +4,9 @@ import { useState, useEffect, useCallback } from 'react';
 import { useTheme } from 'next-themes';
 import { toast } from 'sonner';
 import { Icons } from './home/icons';
+import { createClient } from '@/lib/supabase/client';
+import { signInWithOAuth } from '@/lib/supabase/electron-client';
+import { isElectron } from '@/lib/electron';
 // Using proper GitHub brand icon from Icons component
 import { useAuthMethodTracking } from '@/lib/stores/auth-tracking';
 import { Loader2 } from 'lucide-react';
@@ -22,6 +25,7 @@ interface AuthMessage {
 export default function GitHubSignIn({ returnUrl }: GitHubSignInProps) {
   const [isLoading, setIsLoading] = useState(false);
   const { resolvedTheme } = useTheme();
+  const supabase = createClient();
 
   const { wasLastMethod, markAsUsed } = useAuthMethodTracking('github');
 
@@ -93,6 +97,27 @@ export default function GitHubSignIn({ returnUrl }: GitHubSignInProps) {
   const handleGitHubSignIn = async () => {
     if (isLoading) return;
 
+    // In Electron, use direct OAuth flow (no popup needed)
+    if (isElectron()) {
+      try {
+        setIsLoading(true);
+        const { error } = await signInWithOAuth(supabase, 'github', {
+          redirectTo: returnUrl,
+        });
+
+        if (error) {
+          throw error;
+        }
+        // Don't set loading to false - will redirect
+      } catch (error: any) {
+        console.error('GitHub sign-in error:', error);
+        toast.error(error.message || 'Failed to sign in with GitHub');
+        setIsLoading(false);
+      }
+      return;
+    }
+
+    // Web popup flow
     let popupInterval: NodeJS.Timeout | null = null;
 
     try {

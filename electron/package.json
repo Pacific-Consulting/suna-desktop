@@ -1,0 +1,92 @@
+{
+  "name": "suna-desktop",
+  "version": "1.0.0",
+  "description": "Suna Desktop - AI Agent Platform",
+  "main": "dist/main.js",
+  "author": "Kortix",
+  "license": "Apache-2.0",
+  "private": true,
+  "scripts": {
+    "dev": "npm run build:electron && concurrently \"npm run watch:electron\" \"npm run dev:electron\"",
+    "dev:electron": "cross-env NODE_ENV=development electron .",
+    "build:electron": "tsc",
+    "watch:electron": "tsc --watch",
+    "build": "npm run build:electron && npm run build:frontend && electron-builder",
+    "build:frontend": "cd ../frontend && npm run build:static",
+    "build:win": "npm run build:electron && npm run build:frontend && electron-builder --win",
+    "build:all": "npm run build:electron && npm run build:frontend && electron-builder -mwl",
+    "pack": "npm run build:electron && electron-builder --dir",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "dependencies": {
+    "electron-log": "^5.2.4",
+    "electron-store": "^10.0.0",
+    "electron-updater": "^6.3.9"
+  },
+  "devDependencies": {
+    "@types/node": "^20.17.11",
+    "concurrently": "^9.1.2",
+    "cross-env": "^7.0.3",
+    "electron": "^33.2.1",
+    "electron-builder": "^25.1.8",
+    "typescript": "^5.7.2"
+  },
+  "build": {
+    "appId": "com.kortix.suna",
+    "productName": "Suna",
+    "directories": {
+      "output": "dist-electron",
+      "buildResources": "build"
+    },
+    "files": [
+      "dist/**/*",
+      "build/**/*",
+      "../frontend/out/**/*"
+    ],
+    "extraMetadata": {
+      "main": "dist/main.js"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": ["x64", "arm64"]
+        }
+      ],
+      "icon": "build/icon.ico",
+      "artifactName": "${productName}-Setup-${version}.${ext}",
+      "publisherName": "Kortix",
+      "verifyUpdateCodeSignature": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Suna",
+      "perMachine": false,
+      "allowElevation": true,
+      "deleteAppDataOnUninstall": false
+    },
+    "mac": {
+      "category": "public.app-category.productivity",
+      "target": ["dmg", "zip"],
+      "icon": "build/icon.icns",
+      "hardenedRuntime": true,
+      "gatekeeperAssess": false,
+      "entitlements": "build/entitlements.mac.plist",
+      "entitlementsInherit": "build/entitlements.mac.plist"
+    },
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "icon": "build/icon.png",
+      "category": "Utility"
+    },
+    "protocols": [
+      {
+        "name": "Suna Auth Protocol",
+        "schemes": ["suna"]
+      }
+    ]
+  }
+}

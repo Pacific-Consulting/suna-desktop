@@ -146,7 +146,15 @@ Supabase-powered data layer handling authentication, user management, agent conf
 
 Get Suna running in **under 5 minutes**!
 
-### Option 1: Quick Start (Minimal Setup - Recommended)
+### Desktop Application (Windows)
+
+Want to use Suna as a native Windows desktop app?
+
+🖥️ **[Download Suna Desktop](https://github.com/kortix-ai/suna/releases)** - Native Windows application with OAuth support
+
+📖 **[Desktop App Setup Guide →](./ELECTRON.md)** - Complete guide for building and distributing
+
+### Option 1: Web App - Quick Start (Minimal Setup - Recommended)
 
 For fastest setup with just the essentials:
 
