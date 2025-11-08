@@ -1,0 +1,60 @@
+# Netlify configuration for Kortix/Suna deployment
+# Learn more: https://docs.netlify.com/configure-builds/file-based-configuration/
+
+[build]
+  # Build command - navigate to frontend directory and build Next.js app
+  command = "cd frontend && npm install && npm run build"
+  
+  # Publish directory - Next.js standalone build output
+  publish = "frontend/.next"
+  
+  # Base directory for build
+  base = "/"
+
+[build.environment]
+  # Node version
+  NODE_VERSION = "22"
+  
+  # Next.js configuration
+  NEXT_TELEMETRY_DISABLED = "1"
+  NEXT_PUBLIC_VERCEL_ENV = "production"
+  NODE_ENV = "production"
+
+# Redirect rules for API proxying (PostHog analytics)
+[[redirects]]
+  from = "/ingest/static/*"
+  to = "https://eu-assets.i.posthog.com/static/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/ingest/flags"
+  to = "https://eu.i.posthog.com/flags"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/ingest/*"
+  to = "https://eu.i.posthog.com/:splat"
+  status = 200
+  force = true
+
+# Next.js specific redirects
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = false
+
+# Security headers
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+
+# Plugin configuration for Next.js runtime
+[[plugins]]
+  package = "@netlify/plugin-nextjs"
